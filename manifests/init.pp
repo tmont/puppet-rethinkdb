@@ -68,7 +68,7 @@ class rethinkdb (
 
     $conf_file = "${conf_dir}/${instance_name}.conf"
     $instances_dir = "${rethinkdb::params::instances_dir}/${instance_name}"
-    $pid_file = "${rethinkdb::params::pid_dir}/${instance_name}.pid"
+    $pid_file = "${rethinkdb::params::pid_basedir}/${rethinkdb::params::pid_dirname}/${instance_name}.pid"
     file { $conf_file:
         ensure => file,
         group => $rethinkdb_group,
@@ -80,25 +80,24 @@ class rethinkdb (
 
     # per rethinkdb docs, it's recommended to create the
     # instances directory manually via the rethinkdb command
-    exec { 'rethinkdb-instances-dir':
-        command => "${rethinkdb::params::rethinkdb_bin} create -d '${instances_dir}'",
+    exec { 'create-instances-dir':
+        command => "${rethinkdb::params::rethinkdb_bin} create -d ${instances_dir} && chown ${rethinkdb_user}:${rethinkdb_group} ${instances_dir}/*",
         creates => $instances_dir,
         require => File[$conf_file],
     }
 
-    # the instances directory must be readable and writable by
-    # the rethinkdb user
-    exec { 'rethinkdb-chown-instances-dir':
-        command => "/bin/chown ${rethinkdb_user}:${rethinkdb_group} '${instances_dir}'",
-        require => Exec['rethinkdb-instances-dir'],
+    # make sure the rethinkdb user can create pid files
+    file { $rethinkdb::params::pid_basedir:
+        ensure => directory,
+        require => Exec['create-instances-dir'],
     }
 
-    # make sure the rethinkdb user can create pid files
-    file { $rethinkdb::params::pid_dir:
+    $pid_dir = "${rethinkdb::params::pid_basedir}/${rethinkdb::params::pid_dirname}" 
+    file { $pid_dir:
         ensure => directory,
-        group => $rethinkdb_group,
         owner => $rethinkdb_user,
-        require => Exec['rethinkdb-chown-instances-dir'],
+        group => $rethinkdb_group,
+        require => File[$rethinkdb::params::pid_basedir]
     }
 
     service { 'rethinkdb':
@@ -106,7 +105,7 @@ class rethinkdb (
         enable => true,
         provider => $rethinkdb::params::service_provider,
         name => $rethinkdb::params::service_name,
-        require => File[$rethinkdb::params::pid_dir],
+        require => File[$pid_dir],
         subscribe => File[$conf_file],
     }
 }
