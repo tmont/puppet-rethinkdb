@@ -3,7 +3,8 @@ A [Puppet](https://puppetlabs.com/) module for
 [RethinkDB](http://www.rethinkdb.com/).
 
 ## Dependencies
-[Hey listen!](./Modulefile)
+* [stdlib](https://github.com/puppetlabs/puppetlabs-stdlib)
+* [apt](https://github.com/puppetlabs/puppetlabs-apt)
 
 ## Limitations
 * Only works under Ubuntu. Sorry.
