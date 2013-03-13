@@ -12,6 +12,10 @@ A [Puppet](https://puppetlabs.com/) module for
 * You must specify a user/group for the service (leaving it
   blank is not an option)
 
+## Installation
+* Via puppet forge: http://forge.puppetlabs.com/tmont/rethinkdb
+* Via git submodule: `git submodule add git@github.com:tmont/puppet-rethinkdb path/to/modules/rethinkdb`
+
 ## Usage
 With all the defaults:
 
