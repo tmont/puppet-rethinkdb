@@ -29,8 +29,8 @@ class { 'rethinkdb':
 	driver_port => 28015,
 	http_port => 8080,
 	cluster_port => 29015,
-	rethinkdb_bind => 'all',
-	rethinkdb_join => undef # e.g. "mymachine:29015"
+	rethinkdb_bind => 'all', #slightly dangerous, see below
+	rethinkdb_join => undef #e.g. "mymachine:29015"
 }
 ```
 The above will generate the following conf file
@@ -49,8 +49,14 @@ http-port=8081
 bind=all
 ```
 
+The default for the `bind` parameter is probably not ideal, but it'll
+make everything work out of the box. You can probably change it to the
+machine's IP address on the LAN (e.g. `10.0.*.*` or `192.168.*.*`) for
+something less open. Your mileage may vary.
+
 See the [RethinkDB docs](http://www.rethinkdb.com/docs/guides/startup/)
-on what the different configuration parameters mean.
+for more detail on configuration options.
+
 
 ## What actually happens
 * Installs rethinkdb via its [ppa](http://www.rethinkdb.com/docs/install/)
