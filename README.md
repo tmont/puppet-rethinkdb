@@ -28,8 +28,8 @@ With custom parameters:
 ```puppet
 # these are the default values for each parameter
 class { 'rethinkdb':
-	rethinkdb_user => 'user'
-	rethinkdb_group => 'user',
+	rethinkdb_user => 'rethinkdb'
+	rethinkdb_group => 'rethinkdb',
 	instance_name => 'default',
 	driver_port => 28015,
 	http_port => 8080,
