@@ -81,7 +81,7 @@ class rethinkdb (
     # per rethinkdb docs, it's recommended to create the
     # instances directory manually via the rethinkdb command
     exec { 'create-instances-dir':
-        command => "${rethinkdb::params::rethinkdb_bin} create -d ${instances_dir} && chown ${rethinkdb_user}:${rethinkdb_group} ${instances_dir}/*",
+        command => "${rethinkdb::params::rethinkdb_bin} create -d ${instances_dir} && chown -R ${rethinkdb_user}:${rethinkdb_group} ${rethinkdb::params::instances_dir}/",
         creates => $instances_dir,
         require => File[$conf_file],
     }
