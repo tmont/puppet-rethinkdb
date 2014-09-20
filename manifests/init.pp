@@ -32,24 +32,28 @@ class rethinkdb (
         fail('rethinkdb_bind must be a string')
     }
 
-    case $::operatingsystem {
-        'Ubuntu': {
-            include 'apt'
-            apt::ppa { 'ppa:rethinkdb/ppa': 
-                before => Anchor['rethinkdb::repo']
-            }
-        }
-        default: {
-            fail("Class rethinkdb does not support ${::operatingsystem}")
-        }
+    anchor { 'rethinkdb::begin': }
+
+    if ($::operatingsystem != 'Ubuntu') {
+      fail("Class rethinkdb does not support ${::operatingsystem}")
     }
 
-    anchor { 'rethinkdb::repo': }
+  include apt
+  apt::source { 'rethinkdb':
+    comment => 'RethinkDB Ubuntu repository',
+    location => 'http://download.rethinkdb.com/apt',
+    repos => 'main',
+    key => '3A8F2399',
+    key_source => 'http://download.rethinkdb.com/apt/pubkey.gpg',
+    include_deb => true,
+    include_src => false,
+    require => Anchor['rethinkdb::begin']
+  }
 
     package { 'rethinkdb':
         name => $rethinkdb::params::package,
         ensure => present,
-        require => Anchor['rethinkdb::repo']
+        require => Apt::Source['rethinkdb']
     }
 
     group { $rethinkdb_group:
@@ -107,5 +111,8 @@ class rethinkdb (
         name => $rethinkdb::params::service_name,
         require => File[$pid_dir],
         subscribe => File[$conf_file],
+        before => Anchor['rethinkdb::end']
     }
+
+    anchor { 'rethinkdb::end': }
 }

@@ -64,7 +64,7 @@ for more detail on configuration options.
 
 
 ## What actually happens
-* Installs rethinkdb via its [ppa](http://www.rethinkdb.com/docs/install/)
+* Installs rethinkdb via its [repo](http://www.rethinkdb.com/docs/install/ubuntu/)
 * Creates a user/group for the rethinkdb service
 * Generates a conf file and puts it into `/etc/rethinkdb/instances.d`
 * Runs `rethinkdb create -d /var/lib/rethinkdb/instances.d`, which is
