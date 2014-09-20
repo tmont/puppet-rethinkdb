@@ -9,8 +9,7 @@ A [Puppet](https://puppetlabs.com/) module for
 ## Limitations
 * Only works under Ubuntu. Sorry.
 * Only supports a single instance per machine
-* You must specify a user/group for the service (leaving it
-  blank is not an option)
+* It requires a user/group for the service (defaults to `rethinkdb` and `rethinkdb`)
 
 ## Installation
 * Via puppet forge: http://forge.puppetlabs.com/tmont/rethinkdb
