@@ -1,42 +1,42 @@
 class rethinkdb (
-    $rethinkdb_user = 'rethinkdb',
-    $rethinkdb_group = 'rethinkdb',
-    $instance_name = 'default',
-    $driver_port = 28015,
-    $http_port = 8080,
-    $cluster_port = 29015,
-    $rethinkdb_bind = 'all',
-    $rethinkdb_join = undef
+  $rethinkdb_user = 'rethinkdb',
+  $rethinkdb_group = 'rethinkdb',
+  $instance_name = 'default',
+  $driver_port = 28015,
+  $http_port = 8080,
+  $cluster_port = 29015,
+  $rethinkdb_bind = 'all',
+  $rethinkdb_join = undef
 ) inherits rethinkdb::params {
-    include stdlib
+  include stdlib
 
-    if !is_integer($driver_port) {
-        fail('driver_port must be an integer')
-    }
-    if !is_integer($http_port) {
-        fail('http_port must be an integer')
-    }
-    if !is_integer($cluster_port) {
-        fail('cluster_port must be an integer')
-    }
-    if !is_string($rethinkdb_user) {
-        fail('rethinkdb_user must be a string')
-    }
-    if !is_string($rethinkdb_group) {
-        fail('rethinkdb_group must be a string')
-    }
-    if !is_string($rethinkdb_conf) {
-        fail('rethinkdb_conf must be a string')
-    }
-    if !is_string($rethinkdb_bind) {
-        fail('rethinkdb_bind must be a string')
-    }
+  if !is_integer($driver_port) {
+      fail('driver_port must be an integer')
+  }
+  if !is_integer($http_port) {
+      fail('http_port must be an integer')
+  }
+  if !is_integer($cluster_port) {
+      fail('cluster_port must be an integer')
+  }
+  if !is_string($rethinkdb_user) {
+      fail('rethinkdb_user must be a string')
+  }
+  if !is_string($rethinkdb_group) {
+      fail('rethinkdb_group must be a string')
+  }
+  if !is_string($rethinkdb_conf) {
+      fail('rethinkdb_conf must be a string')
+  }
+  if !is_string($rethinkdb_bind) {
+      fail('rethinkdb_bind must be a string')
+  }
 
-    anchor { 'rethinkdb::begin': }
+  anchor { 'rethinkdb::begin': }
 
-    if ($::operatingsystem != 'Ubuntu') {
-      fail("Class rethinkdb does not support ${::operatingsystem}")
-    }
+  if ($::operatingsystem != 'Ubuntu') {
+    fail("Class rethinkdb does not support ${::operatingsystem}")
+  }
 
   include apt
   apt::source { 'rethinkdb':
@@ -50,69 +50,69 @@ class rethinkdb (
     require => Anchor['rethinkdb::begin']
   }
 
-    package { 'rethinkdb':
-        name => $rethinkdb::params::package,
-        ensure => present,
-        require => Apt::Source['rethinkdb']
-    }
+  package { 'rethinkdb':
+    name => $rethinkdb::params::package,
+    ensure => present,
+    require => Apt::Source['rethinkdb']
+  }
 
-    group { $rethinkdb_group:
-        ensure => present,
-        name => $rethinkdb_group,
-        require => Package['rethinkdb']
-    }
-    
-    user { $rethinkdb_user:
-        comment => 'RethinkDB',
-        ensure => present,
-        gid => $rethinkdb_group,
-        system => true,
-        require => Group[$rethinkdb_group]
-    }
+  group { $rethinkdb_group:
+    ensure => present,
+    name => $rethinkdb_group,
+    require => Package['rethinkdb']
+  }
 
-    $conf_file = "${conf_dir}/${instance_name}.conf"
-    $instances_dir = "${rethinkdb::params::instances_dir}/${instance_name}"
-    $pid_file = "${rethinkdb::params::pid_basedir}/${rethinkdb::params::pid_dirname}/${instance_name}.pid"
-    file { $conf_file:
-        ensure => file,
-        group => $rethinkdb_group,
-        owner => $rethinkdb_user,
-        mode => 0644,
-        content => template('rethinkdb/default.conf.erb'),
-        require => User[$rethinkdb_user]
-    }
+  user { $rethinkdb_user:
+    comment => 'RethinkDB',
+    ensure => present,
+    gid => $rethinkdb_group,
+    system => true,
+    require => Group[$rethinkdb_group]
+  }
 
-    # per rethinkdb docs, it's recommended to create the
-    # instances directory manually via the rethinkdb command
-    exec { 'create-instances-dir':
-        command => "${rethinkdb::params::rethinkdb_bin} create -d ${instances_dir} && chown -R ${rethinkdb_user}:${rethinkdb_group} ${rethinkdb::params::instances_dir}/",
-        creates => $instances_dir,
-        require => File[$conf_file],
-    }
+  $conf_file = "${conf_dir}/${instance_name}.conf"
+  $instances_dir = "${rethinkdb::params::instances_dir}/${instance_name}"
+  $pid_file = "${rethinkdb::params::pid_basedir}/${rethinkdb::params::pid_dirname}/${instance_name}.pid"
+  file { $conf_file:
+    ensure => file,
+    group => $rethinkdb_group,
+    owner => $rethinkdb_user,
+    mode => 0644,
+    content => template('rethinkdb/default.conf.erb'),
+    require => User[$rethinkdb_user]
+  }
 
-    # make sure the rethinkdb user can create pid files
-    file { $rethinkdb::params::pid_basedir:
-        ensure => directory,
-        require => Exec['create-instances-dir'],
-    }
+  # per rethinkdb docs, it's recommended to create the
+  # instances directory manually via the rethinkdb command
+  exec { 'create-instances-dir':
+    command => "${rethinkdb::params::rethinkdb_bin} create -d ${instances_dir} && chown -R ${rethinkdb_user}:${rethinkdb_group} ${rethinkdb::params::instances_dir}/",
+    creates => $instances_dir,
+    require => File[$conf_file],
+  }
 
-    $pid_dir = "${rethinkdb::params::pid_basedir}/${rethinkdb::params::pid_dirname}" 
-    file { $pid_dir:
-        ensure => directory,
-        owner => $rethinkdb_user,
-        group => $rethinkdb_group,
-        require => File[$rethinkdb::params::pid_basedir]
-    }
+  # make sure the rethinkdb user can create pid files
+  file { $rethinkdb::params::pid_basedir:
+    ensure => directory,
+    require => Exec['create-instances-dir'],
+  }
 
-    service { 'rethinkdb':
-        ensure => running,
-        enable => true,
-        provider => $rethinkdb::params::service_provider,
-        name => $rethinkdb::params::service_name,
-        require => File[$pid_dir],
-        subscribe => File[$conf_file],
-        before => Anchor['rethinkdb::end']
-    }
+  $pid_dir = "${rethinkdb::params::pid_basedir}/${rethinkdb::params::pid_dirname}"
+  file { $pid_dir:
+    ensure => directory,
+    owner => $rethinkdb_user,
+    group => $rethinkdb_group,
+    require => File[$rethinkdb::params::pid_basedir]
+  }
 
-    anchor { 'rethinkdb::end': }
+  service { 'rethinkdb':
+    ensure => running,
+    enable => true,
+    provider => $rethinkdb::params::service_provider,
+    name => $rethinkdb::params::service_name,
+    require => File[$pid_dir],
+    subscribe => File[$conf_file],
+    before => Anchor['rethinkdb::end']
+  }
+
+  anchor { 'rethinkdb::end': }
 }
